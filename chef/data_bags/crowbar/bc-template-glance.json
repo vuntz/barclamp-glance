@@ -13,7 +13,13 @@
         "bind_port": 9292,
         "log_file": "/var/log/glance/api.log",
         "config_file": "/etc/glance/glance-api.conf",
-        "paste_ini": "/etc/glance/glance-api-paste.ini"
+        "paste_ini": "/etc/glance/glance-api-paste.ini",
+        "protocol": "http",
+        "ssl": {
+          "certfile": "",
+          "keyfile": "",
+          "ca_trust_chain": ""
+        }
       },
       "registry": {
         "verbose": false,

@@ -27,7 +27,13 @@
                 "bind_port": { "type": "int", "required": true },
                 "log_file": { "type": "str", "required": true },
                 "config_file": { "type": "str", "required": true },
-                "paste_ini": { "type": "str", "required": true }
+                "paste_ini": { "type": "str", "required": true },
+                "protocol": { "type" : "str", "required" : true },
+                "ssl": { "type": "map", "required": true, "mapping": {
+                  "certfile": { "type" : "str", "required" : true },
+                  "keyfile": { "type" : "str", "required" : true },
+                  "ca_trust_chain": { "type" : "str", "required" : true }
+                }}
               }
             },
             "registry": {

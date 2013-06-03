@@ -90,6 +90,11 @@ locale_additions:
           service_user: Service User
           service_password: Service Password
           use_syslog: Use Syslog
+          ssl: Security Attributes
+          protocol: Protocol
+          api_ssl_certfile: SSL Public Certificate File
+          api_ssl_keyfile: SSL Private Key File
+          api_ssl_ca_trust_chain: SSL Trust Certificate Chain File
         edit_deployment: 
           deployment: Deployment
 

@@ -32,6 +32,10 @@ default[:glance][:api][:bind_host] = ipaddress
 default[:glance][:api][:bind_port] = "9292"
 default[:glance][:api][:log_file] = "/var/log/glance/api.log"
 default[:glance][:api][:config_file]="/etc/glance/glance-api.conf"
+default[:glance][:api][:protocol] = "http"
+default[:glance][:api][:ssl][:certfile] = ""
+default[:glance][:api][:ssl][:keyfile] = ""
+default[:glance][:api][:ssl][:ca_trust_chain] = ""
 
 default[:glance][:registry][:verbose] = "True"
 default[:glance][:registry][:debug] = "True"

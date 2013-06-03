@@ -59,7 +59,11 @@ template node[:glance][:api][:config_file] do
       :keystone_service_port => keystone_service_port,
       :keystone_service_user => keystone_service_user,
       :keystone_service_password => keystone_service_password,
-      :keystone_service_tenant => keystone_service_tenant
+      :keystone_service_tenant => keystone_service_tenant,
+      :ssl => node[:glance][:api][:protocol] == "https",
+      :ssl_certfile => node[:glance][:api][:ssl][:certfile],
+      :ssl_keyfile => node[:glance][:api][:ssl][:keyfile],
+      :ssl_ca_trust_chain => node[:glance][:api][:ssl][:ca_trust_chain]
   )
 end
 
@@ -99,6 +103,7 @@ end
 if node[:glance][:use_keystone]
   my_admin_ip = Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, "admin").address
   my_public_ip = Chef::Recipe::Barclamp::Inventory.get_network_by_type(node, "public").address
+  api_protocol = node[:glance][:api][:protocol]
   api_port = node["glance"]["api"]["bind_port"]
 
   keystone_register "glance api wakeup keystone" do
@@ -149,9 +154,9 @@ if node[:glance][:use_keystone]
     token keystone_token
     endpoint_service "glance"
     endpoint_region "RegionOne"
-    endpoint_publicURL "http://#{my_public_ip}:#{api_port}/v1"
-    endpoint_adminURL "http://#{my_admin_ip}:#{api_port}/v1"
-    endpoint_internalURL "http://#{my_admin_ip}:#{api_port}/v1"
+    endpoint_publicURL "#{api_protocol}://#{my_public_ip}:#{api_port}/v1"
+    endpoint_adminURL "#{api_protocol}://#{my_admin_ip}:#{api_port}/v1"
+    endpoint_internalURL "#{api_protocol}://#{my_admin_ip}:#{api_port}/v1"
 #  endpoint_global true
 #  endpoint_enabled true
     action :add_endpoint_template

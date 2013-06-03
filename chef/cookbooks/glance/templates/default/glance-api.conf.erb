@@ -16,6 +16,17 @@ bind_host = <%= node[:glance][:api][:bind_open_address] ? "0.0.0.0" : node[:glan
 # Port the bind the API server to
 bind_port = <%= node[:glance][:api][:bind_port] %>
 
+<% if @ssl -%>
+# Certificate file to use when starting API server securely
+cert_file = <%= @ssl_certfile %>
+
+# Private key file to use when starting API server securely
+key_file = <%= @ssl_keyfile %>
+
+# CA certificate file to use to verify connecting clients
+ca_file = <%= @ssl_ca_trust_chain %>
+<% end -%>
+
 # Address to find the registry server
 registry_host = <%= node[:glance][:registry][:bind_host] %>
 
