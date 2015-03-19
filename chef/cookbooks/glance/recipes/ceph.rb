@@ -17,6 +17,9 @@
 # limitations under the License.
 #
 
+ceph_conf = node[:glance][:rbd][:store_ceph_conf]
+admin_keyring = node[:glance][:rbd][:store_admin_keyring]
+
 ceph_env_filter = " AND ceph_config_environment:ceph-config-default"
 ceph_servers = search(:node, "roles:ceph-osd#{ceph_env_filter}") || []
 if ceph_servers.length > 0
@@ -24,20 +27,22 @@ if ceph_servers.length > 0
 else
   # If external Ceph cluster will be used,
   # we need install ceph client packages
-  if node[:platform] == "suse" && File.exists?("/etc/ceph/ceph.client.admin.keyring")
-    package "ceph-common"
-    package "python-ceph"
-  else 
+  if File.exists?(ceph_conf) && File.exists?(admin_keyring)
+    if node[:platform] == "suse"
+      package "ceph-common"
+      package "python-ceph"
+    end
+  else
     return
   end
 end
 
 # If ceph.conf and admin keyring will be available 
 # we have to check ceph cluster status
-check_ceph = Mixlib::ShellOut.new("ceph -s | grep -q -e 'HEALTH_[OK|WARN]'")
-check_ceph.run_command
+cmd = ["ceph", "-k", admin_keyring, "-c", ceph_conf]
+check_ceph = Mixlib::ShellOut.new(cmd)
 
-if check_ceph.exitstatus == 0
+if check_ceph.run_command.stdout.match("(HEALTH_OK|HEALTH_WARN)")
 
   ceph_user = node[:glance][:rbd][:store_user]
   ceph_pool = node[:glance][:rbd][:store_pool]
@@ -45,6 +50,8 @@ if check_ceph.exitstatus == 0
   ceph_caps = { 'mon' => 'allow r', 'osd' => "allow class-read object_prefix rbd_children, allow rwx pool=#{ceph_pool}" }
 
   ceph_client ceph_user do
+    ceph_conf ceph_conf
+    admin_keyring admin_keyring
     caps ceph_caps
     keyname "client.#{ceph_user}"
     filename "/etc/ceph/ceph.client.#{ceph_user}.keyring"
@@ -53,6 +60,9 @@ if check_ceph.exitstatus == 0
     mode 0640
   end
 
-  ceph_pool ceph_pool
+  ceph_pool ceph_pool do
+    ceph_conf ceph_conf
+    admin_keyring admin_keyring
+  end
 
 end
