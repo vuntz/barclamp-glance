@@ -27,13 +27,11 @@ if ceph_servers.length > 0
 else
   # If external Ceph cluster will be used,
   # we need install ceph client packages
-  if File.exists?(ceph_conf) && File.exists?(admin_keyring)
-    if node[:platform] == "suse"
-      package "ceph-common"
-      package "python-ceph"
-    end
-  else
-    return
+  return unless File.exists?(ceph_conf) && File.exists?(admin_keyring)
+
+  if node[:platform] == "suse"
+    package "ceph-common"
+    package "python-ceph"
   end
 end
 
@@ -42,27 +40,25 @@ end
 cmd = ["ceph", "-k", admin_keyring, "-c", ceph_conf]
 check_ceph = Mixlib::ShellOut.new(cmd)
 
-if check_ceph.run_command.stdout.match("(HEALTH_OK|HEALTH_WARN)")
+return unless check_ceph.run_command.stdout.match("(HEALTH_OK|HEALTH_WARN)")
 
-  ceph_user = node[:glance][:rbd][:store_user]
-  ceph_pool = node[:glance][:rbd][:store_pool]
+ceph_user = node[:glance][:rbd][:store_user]
+ceph_pool = node[:glance][:rbd][:store_pool]
 
-  ceph_caps = { 'mon' => 'allow r', 'osd' => "allow class-read object_prefix rbd_children, allow rwx pool=#{ceph_pool}" }
+ceph_caps = { 'mon' => 'allow r', 'osd' => "allow class-read object_prefix rbd_children, allow rwx pool=#{ceph_pool}" }
 
-  ceph_client ceph_user do
-    ceph_conf ceph_conf
-    admin_keyring admin_keyring
-    caps ceph_caps
-    keyname "client.#{ceph_user}"
-    filename "/etc/ceph/ceph.client.#{ceph_user}.keyring"
-    owner "root"
-    group node[:glance][:group]
-    mode 0640
-  end
+ceph_client ceph_user do
+  ceph_conf ceph_conf
+  admin_keyring admin_keyring
+  caps ceph_caps
+  keyname "client.#{ceph_user}"
+  filename "/etc/ceph/ceph.client.#{ceph_user}.keyring"
+  owner "root"
+  group node[:glance][:group]
+  mode 0640
+end
 
-  ceph_pool ceph_pool do
-    ceph_conf ceph_conf
-    admin_keyring admin_keyring
-  end
-
+ceph_pool ceph_pool do
+  ceph_conf ceph_conf
+  admin_keyring admin_keyring
 end
