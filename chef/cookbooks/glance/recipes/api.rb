@@ -17,6 +17,7 @@ if node.platform == "ubuntu"
 end
 
 keystone_settings = KeystoneHelper.keystone_settings(node, @cookbook_name)
+cinder_settings = CrowbarConfig.fetch("openstack", "cinder")
 
 if node[:glance][:api][:protocol] == 'https'
   if node[:glance][:ssl][:generate_certs]
@@ -83,15 +84,6 @@ if node[:glance][:api][:protocol] == 'https'
   end
 end
 
-#TODO: glance should depend on cinder, but cinder already depends on glance :/
-# so we have to do something like this
-cinder_api_insecure = false
-cinders = search(:node, "roles:cinder-controller") || []
-if cinders.length > 0
-  cinder = cinders[0]
-  cinder_api_insecure = cinder[:cinder][:api][:protocol] == 'https' && cinder[:cinder][:ssl][:insecure]
-end
-
 #TODO: similarly with nova
 use_docker = !search(:node, "roles:nova-multi-compute-docker").empty?
 
@@ -124,7 +116,7 @@ template node[:glance][:api][:config_file] do
       :registry_bind_port => network_settings[:registry][:bind_port],
       :keystone_settings => keystone_settings,
       :rabbit_settings => fetch_rabbitmq_settings,
-      :cinder_api_insecure => cinder_api_insecure,
+      :cinder_api_insecure => cinder_settings.fetch("insecure", false),
       :use_docker => use_docker,
       :glance_stores => glance_stores.join(",")
 
